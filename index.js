@@ -8,7 +8,7 @@ module.exports = {
       });
 
       if (Process.platform === 'darwin') {
-        const objcThrow = Module.findExportByName('libobjc.A.dylib', 'objc_exception_throw');
+        const objcThrow = Process.getModuleByName('libobjc.A.dylib').findExportByName('objc_exception_throw');
         if (objcThrow !== null) {
           let potentialObjCPanic = null;
 
@@ -21,7 +21,7 @@ module.exports = {
             };
           });
 
-          Interceptor.attach(Module.getExportByName('libsystem_c.dylib', 'abort'), {
+          Interceptor.attach(Process.getModuleByName('libsystem_c.dylib').getExportByName('abort'), {
             onEnter(args) {
               const isCausedByUnhandledObjCException = Thread.backtrace(this.context).map(DebugSymbol.fromAddress).some(symbol => {
                 return symbol.moduleName === 'libobjc.A.dylib' && symbol.name === '_objc_terminate()';
